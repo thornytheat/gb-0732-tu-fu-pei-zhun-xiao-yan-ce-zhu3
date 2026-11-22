@@ -1,0 +1,66 @@
+.button { display: inline-flex; gap: 9px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: var(--radius); background: transparent; padding: 5px 10px; font-size: 12px; line-height: 1.35; text-decoration: none; white-space: nowrap; }
+.button.outline { border-color: var(--accent); color: var(--accent); }
+.button.primary { background: var(--accent); color: var(--accent-ink); }
+.button.primary:hover:not(:disabled) { background: #71372d; }
+.button.outline:hover:not([aria-disabled]) { background: var(--accent-soft); }
+.button:disabled, .button[aria-disabled] { opacity: .5; cursor: default; }
+.link-button, .text-action { text-decoration: underline; text-underline-offset: 3px; }
+.text-action { color: var(--accent); background: none; border: 0; font-size: 11px; padding: 1px 0; }
+.settings { display: grid; gap: 7px; padding: 12px var(--pad); border-bottom: 1px solid var(--line); }
+.settings label, .signature-form label { font-size: 11px; font-weight: 600; }
+input, select { width: 100%; height: 31px; min-width: 0; border: 1px solid var(--line-2); background: var(--panel); border-radius: 0; padding: 4px 5px; font-size: 12px; }
+input[type=number] { font-family: var(--mono); }
+.measure-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-block: 3px 5px; }
+.measure-inputs span { font: 10px var(--mono); color: var(--ink-3); }
+.measure-inputs input { margin-top: 3px; }
+.settings .primary { justify-content: space-between; min-height: 32px; }
+.feedback { color: var(--bad); font-size: 12px; }
+.subhead { display: flex; align-items: center; justify-content: space-between; padding: 9px var(--pad) 3px; }
+.sheet-index { padding: 0 var(--pad); }
+.sheet-item, .seam-item { display: grid; align-items: center; gap: 7px; width: 100%; text-align: left; min-height: var(--row); border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 3px 0; font-size: 12px; }
+.sheet-item { grid-template-columns: auto minmax(0,1fr) auto; }
+.sheet-item:last-child, .seam-item:last-child { border-bottom: 0; }
+.sheet-item[aria-pressed=true], .seam-item[aria-pressed=true] { color: var(--accent); }
+.sheet-item[aria-pressed=true] .num, .seam-item[aria-pressed=true] .num { text-decoration: underline; text-underline-offset: 3px; }
+.sheet-item:hover, .seam-item:hover { background: var(--panel-2); }
+.orbit { display: grid; gap: 2px; padding: 7px var(--pad) 12px; font-size: 10px; color: var(--ink-3); }
+.orbit strong { font-size: 11px; color: var(--ink); font-weight: 500; }
+.seam-index { padding: 4px var(--pad) 7px; }
+.seam-item { grid-template-columns: minmax(0,1fr) auto; min-height: 46px; }
+.seam-item small { display: block; font-size: 10px; color: var(--ink-3); }
+.seam-item > span:last-child { text-align: right; }
+.status { font-size: 11px; font-weight: 600; white-space: nowrap; }
+.status[data-status=PASS], .status[data-status=READY], .status[data-status=SIGNED], .status[data-status=FIT] { color: var(--ok); }
+.status[data-status=RETURN], .status[data-status=FAIL], .status[data-status=OUTLIER] { color: var(--bad); }
+.status[data-status=BLOCKED], .status[data-status=HOLD] { color: var(--warn); }
+.atlas-plate, .edge-plate { position: relative; margin: 12px; padding: 5px; border: 1px solid var(--line-2); }
+.atlas-plate::before, .edge-plate::before { position: absolute; pointer-events: none; content: ''; inset: 3px; border: 1px solid var(--line); }
+canvas { display: block; max-width: 100%; width: 100%; }
+#atlas-plot { height: clamp(278px, 33vw, 455px); }
+#edge-plot { height: 134px; }
+.caption { padding: 0 var(--pad) 10px; font: 11px/1.4 var(--mono); color: var(--ink-3); }
+.plot-legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 var(--pad) 12px; font-size: 11px; color: var(--ink-2); }
+.plot-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.plot-legend i { display: inline-block; width: 12px; height: 10px; }
+.cross-key { background: linear-gradient(var(--ok), var(--ok)) center/9px 1px no-repeat, linear-gradient(var(--ok), var(--ok)) center/1px 9px no-repeat; }
+.outlier-key { border: 1px solid var(--bad); transform: scale(.7) rotate(45deg); }
+.line-key { border-top: 2px solid var(--accent); height: 1px !important; }
+.detail-content { min-width: 0; }
+.detail-content h3 { padding: 9px var(--pad) 4px; }
+.detail-content > p { padding: 10px var(--pad); }
+.table-wrap { max-height: 390px; overflow: auto; }
+.ledger { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; }
+.ledger th, .ledger td { padding: 5px 10px; height: var(--row); min-width: 68px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.ledger th:first-child, .ledger td:first-child { padding-left: var(--pad); }
+.ledger th { position: sticky; top: 0; z-index: 1; background: var(--panel-2); font-size: 11px; }
+.ledger tr:last-child td { border-bottom: 0; }
+.ledger tr:hover td { background: var(--panel-2); }
+.ledger .num { text-align: right; }
+.ledger .raw { max-width: 370px; overflow: hidden; text-overflow: ellipsis; }
+.signature-form { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; padding: 12px var(--pad); border-top: 1px solid var(--line); }
+.signature-form label { min-width: 125px; }
+.signature-form label > * { display: block; margin-top: 2px; }
+.signature-form .button { min-height: 31px; }
+.residual-wrap { padding: 6px var(--pad); border-bottom: 1px solid var(--line); }
+.residual-wrap canvas { height: 156px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; animation: none !important; transition: none !important; } }

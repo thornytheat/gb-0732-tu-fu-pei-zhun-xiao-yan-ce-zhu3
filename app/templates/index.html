@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图幅配准校验册</title>
+  <link rel="stylesheet" href="/static/paper.css">
+  <link rel="stylesheet" href="/static/register.css">
+  <link rel="stylesheet" href="/static/plates.css">
+  <script type="module" src="/static/register.js"></script>
+</head>
+<body>
+  <div class="app">
+    {% include 'folio.html' %}
+    <div class="workspace">
+      <header class="topbar">
+        <div class="trail"><span>县测绘档案室</span><span aria-hidden="true">/</span><strong>图幅配准</strong></div>
+        <div class="actions">
+          <button class="button link-button" id="print" type="button" disabled>打印册页</button>
+          <a class="button outline" id="download" aria-disabled="true">导出证据</a>
+        </div>
+      </header>
+      <main id="main">
+        <div class="title-block">
+          <div><p class="edition" id="edition">县幅档 · 接边校验</p><h1>图幅配准校验册</h1></div>
+          <div class="edition-meta"><span>数据版本 <strong id="data-version">—</strong></span><span>批次 <strong id="batch-id" class="num">—</strong></span></div>
+        </div>
+        <div class="kpis" aria-label="对账摘录">
+          <div class="kpi"><span>控制点原件</span><strong id="k-input">—</strong><small>行</small></div>
+          <div class="kpi"><span>采信</span><strong id="k-accepted">—</strong><small>行</small></div>
+          <div class="kpi"><span>离群</span><strong id="k-outlier">—</strong><small>行</small></div>
+          <div class="kpi"><span>隔离</span><strong id="k-isolated">—</strong><small>行</small></div>
+          <div class="kpi"><span>拼缝通过</span><strong id="k-edges">—</strong><small>条</small></div>
+          <div class="kpi"><span>可签图幅</span><strong id="k-ready">—</strong><small>幅</small></div>
+        </div>
+        {% include 'sheets.html' %}
+        {% include 'details.html' %}
+        <ol class="notes" aria-label="印刷脚注">
+          <li id="note-1">像素坐标从左上角起算。局部平面坐标以东、北方向为正。</li>
+          <li id="note-2">拼缝采用独立见证点，两侧投影差取欧氏距离。</li>
+        </ol>
+      </main>
+      <footer class="statusbar"><span id="run-state" role="status" aria-live="polite">请选择档件后运行。</span><span id="generated">{{ rule_version }} · UTC+08:00</span></footer>
+    </div>
+  </div>
+  <script id="reason-dictionary" type="application/json">{{ reasons | tojson }}</script>
+</body>
+</html>

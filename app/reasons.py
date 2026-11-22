@@ -1,0 +1,37 @@
+REASONS = {
+    'COLUMN_COUNT': '字段数不符',
+    'EMPTY_COORDINATE': '坐标缺值',
+    'BAD_NUMBER': '数值格式无效',
+    'UNIT_MISMATCH': '坐标系与单位不符',
+    'INVALID_CRS': '坐标系未登记',
+    'COORDINATE_RANGE': '坐标超出图框或工作区',
+    'UNKNOWN_SHEET': '图幅未登记',
+    'EMPTY_NAME': '点名缺失',
+    'PIXEL_REPEAT': '重复像素记录',
+    'GROUND_REPEAT': '重复地面记录',
+    'PIXEL_CONFLICT': '同名像素重测冲突',
+    'GROUND_CONFLICT': '同名地面重测冲突',
+    'MISSING_GROUND': '未找到同名地面点',
+    'UNUSED_GROUND': '地面点未配对',
+    'TOO_FEW_CONTROLS': '配对控制点少于三组',
+    'TOO_MANY_CONTROLS': '配对控制点超过检算上限',
+    'COLLINEAR_PIXELS': '像素点共线或近共线',
+    'SINGULAR_TRANSFORM': '地面仿射不可逆',
+    'AMBIGUOUS_CONTROLS': '存在同等支持的采信集合',
+    'NO_CONSENSUS': '控制点无法形成稳定多数',
+    'CONTROL_OUTLIER': '重估后平面残差超限',
+    'UNKNOWN_EDGE': '拼缝未登记',
+    'EDGE_DUPLICATE': '见证点同名或同位置',
+    'OFF_EDGE': '见证点不在登记边上',
+    'TRAINING_REUSE': '见证点复用了控制点',
+    'EDGE_ORDER': '两侧见证点沿边次序不一致',
+    'EDGE_COVERAGE': '合格见证点数量或覆盖不足',
+    'EDGE_DIRTY': '见证表含隔离行',
+    'MODEL_UNAVAILABLE': '至少一幅图缺少重估模型',
+    'GAP_OVER_LIMIT': '地面拼缝偏差超限',
+    'NO_EDGE_REGISTERED': '未登记独立拼缝',
+}
+
+
+def finding(source, reason, **context):
+    return {'source': source, 'reason': reason, 'label': REASONS[reason], **context}

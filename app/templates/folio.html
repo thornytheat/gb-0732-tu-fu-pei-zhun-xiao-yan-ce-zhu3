@@ -1,0 +1,13 @@
+<aside class="rail">
+  <a class="imprint" href="#main" aria-label="配准册首页">
+    <span class="survey-mark" aria-hidden="true"></span>
+    <span><strong>测绘卷宗</strong><small>图幅档案</small></span>
+  </a>
+  <nav aria-label="校验章节">
+    <span class="rail-label">校验章节</span>
+    {% for key, title in sections %}
+    <a class="folio-link" href="#{{ key }}" data-section="{{ key }}"><span class="folio-no" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span>{{ title }}</a>
+    {% endfor %}
+  </nav>
+  <div class="rail-foot"><a href="/docs">接口目录 <span aria-hidden="true">↗</span></a><small>内部校验 · {{ rule_version }}</small></div>
+</aside>

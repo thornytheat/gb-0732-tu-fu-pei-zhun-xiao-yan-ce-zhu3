@@ -1,0 +1,31 @@
+<div class="spec-spread">
+  <section class="panel specifications" aria-labelledby="spec-title">
+    <div class="panel-head"><h2 id="spec-title">作业规格</h2></div>
+    <form id="run-form" class="settings">
+      <label for="dataset">档件</label>
+      <select name="dataset" id="dataset">
+        {% for key, title in datasets.items() %}<option value="{{ key }}">{{ title }}</option>{% endfor %}
+      </select>
+      <div class="measure-inputs">
+        <label>点残差 <span>m</span><input name="control_limit_m" type="number" min="0.01" max="25" step="0.01" value="0.75" required></label>
+        <label>拼缝偏差 <span>m</span><input name="seam_limit_m" type="number" min="0.01" max="25" step="0.01" value="1.50" required></label>
+      </div>
+      <button type="submit" id="run" class="button primary">运行校验 <span aria-hidden="true">→</span></button>
+      <p class="feedback" id="run-error" role="alert" hidden></p>
+    </form>
+    <div class="subhead"><h3>图幅索引</h3><button id="all-sheets" type="button" class="text-action">全图</button></div>
+    <div id="sheet-index" class="sheet-index"></div>
+    <div class="orbit"><span>局部原点</span><strong id="origin" class="num">—</strong></div>
+  </section>
+  <section class="panel atlas" aria-labelledby="atlas-title">
+    <div class="panel-head"><h2 id="atlas-title">配准图版<sup><a href="#note-1">1</a></sup></h2><span class="unit" id="atlas-unit">局部平面 / m</span></div>
+    <div class="atlas-plate"><canvas id="atlas-plot" role="img" aria-label="各图幅图框和控制点的分布"></canvas></div>
+    <div class="plot-legend" id="atlas-legend"><span><i class="cross-key"></i>采信点</span><span><i class="outlier-key"></i>离群点</span><span><i class="line-key"></i>登记图边</span></div>
+  </section>
+  <section class="panel citations" aria-labelledby="seam-title">
+    <div class="panel-head"><h2 id="seam-title">拼缝索引<sup><a href="#note-2">2</a></sup></h2></div>
+    <div class="seam-index" id="seam-index"></div>
+    <div class="edge-plate"><canvas id="edge-plot" role="img" aria-label="拼缝两侧和逐站见证偏差"></canvas></div>
+    <p class="caption" id="edge-caption"></p>
+  </section>
+</div>

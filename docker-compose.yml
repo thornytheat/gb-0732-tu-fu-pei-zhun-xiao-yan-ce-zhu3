@@ -1,0 +1,18 @@
+name: gb-0732-map-register
+services:
+  app:
+    build: .
+    ports:
+      - "${REGISTER_PORT:-18421}:18421"
+    environment:
+      REGISTER_DB_PATH: /var/lib/register/register.sqlite3
+    volumes:
+      - register-data:/var/lib/register
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:18421/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+volumes:
+  register-data:

@@ -1,0 +1,60 @@
+{
+  "title": "河西四幅接边检校",
+  "version": "HX-1978-R3",
+  "longitude_deg": 112.8,
+  "latitude_deg": 28.2,
+  "sheets": [
+    {
+      "code": "0421",
+      "title": "河西",
+      "width_px": 1200,
+      "height_px": 900
+    },
+    {
+      "code": "0422",
+      "title": "青石桥",
+      "width_px": 1200,
+      "height_px": 900
+    },
+    {
+      "code": "0431",
+      "title": "柳湾",
+      "width_px": 1200,
+      "height_px": 900
+    },
+    {
+      "code": "0432",
+      "title": "双井",
+      "width_px": 1200,
+      "height_px": 900
+    }
+  ],
+  "edges": [
+    {
+      "code": "HX-QS",
+      "a": "0421",
+      "b": "0422",
+      "a_side": "E",
+      "b_side": "W"
+    },
+    {
+      "code": "HX-LW",
+      "a": "0421",
+      "b": "0431",
+      "a_side": "S",
+      "b_side": "N"
+    },
+    {
+      "code": "QS-SJ",
+      "a": "0422",
+      "b": "0432",
+      "a_side": "S",
+      "b_side": "N"
+    }
+  ],
+  "aliases": {
+    "河西旧一": "水准一",
+    "水准一": "P01",
+    "河堤四号": "P04"
+  }
+}

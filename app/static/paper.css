@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light;
+  --bg: #eee8db;
+  --rail: #e7dfce;
+  --panel: #faf6eb;
+  --panel-2: #f2ebdd;
+  --panel-3: #ded5c2;
+  --line: #d4c9b4;
+  --line-2: #ac9d82;
+  --ink: #302b22;
+  --ink-2: #625745;
+  --ink-3: #6e6251;
+  --accent: #8c4638;
+  --accent-ink: #fff8e9;
+  --accent-soft: #ead9ca;
+  --ok: #385b49;
+  --warn: #77601e;
+  --bad: #943a35;
+  --info: #5c6257;
+  --grid-ink: #d8cfbb;
+  --ui: system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --serif: 'Songti SC', 'Noto Serif CJK SC', SimSun, 'Times New Roman', serif;
+  --mono: 'SFMono-Regular', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  --gap: 14px;
+  --pad: 18px;
+  --row: 35px;
+  --bar: 49px;
+  --dur: 120ms;
+  --radius: 0;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--ui); }
+h1, h2, h3, p, figure { margin: 0; }
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.num, .kpi strong { font-family: var(--mono); font-variant-numeric: tabular-nums; }
