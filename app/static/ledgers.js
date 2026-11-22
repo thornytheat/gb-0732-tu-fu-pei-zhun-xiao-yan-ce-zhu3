@@ -3,6 +3,7 @@ import {drawResidual} from './plots.js';
 export const labels = {
   PASS: '通过', FAIL: '超限', BLOCKED: '待核', FIT: '已拟合', READY: '可签', HOLD: '暂缓', RETURN: '退修',
   SIGNED: '已签', OUTLIER: '离群', ACCEPTED: '采信', RECEIVED: '已收',
+  RELEASED: '可调阅', WITHHELD: '未放行',
   EMPTY_FILE: '空档', BLANK_FILE: '空行档', HEADER_ONLY: '仅表头',
 };
 const reasons = JSON.parse(document.getElementById('reason-dictionary').textContent);
@@ -150,9 +151,62 @@ function review(root, snapshot) {
     width.map((entry, index) => [['控制点', '地面点', '拼缝见证'][index], entry.input, sums[index], badge('PASS')])));
 }
 
-export function renderLedger(root, section, {snapshot, preview, selected, edgeId, limit}) {
+function issueSummary(register) {
+  const frame = el('div', null, 'issue-summary');
+  const stamp = el('p', null, 'issue-stamp');
+  stamp.append(el('strong', `${register.summary.released} 幅可调阅`), el('span', `／ ${register.summary.withheld} 幅未放行`));
+  if (register.draft) stamp.append(el('span', '发放前预排，尚未成册', 'draft-flag'));
+  else stamp.append(el('span', `第 ${register.revision} 版`, 'revision-flag'));
+  frame.append(stamp);
+  const stages = [['FIT', '拟合与重估'], ['SEAM', '接缝复核'], ['SIGNATURE', '签审']];
+  const list = el('ul', null, 'issue-stages');
+  for (const [key, title] of stages) {
+    const count = register.summary.by_stage[key] || 0;
+    const item = el('li', null, count ? null : 'muted');
+    item.append(el('span', title), el('strong', count, 'num'));
+    list.append(item);
+  }
+  frame.append(list, el('p', register.statement, 'issue-statement'));
+  return frame;
+}
+
+function issuance(root, register, history) {
+  root.append(issueSummary(register));
+  group(root, '本次可调阅图幅', table([['图幅'], ['签审员'], ['签审时间'], ['拟合均方根 m', 'num'], ['关联拼缝']],
+    register.released.map(row => [`${row.code} ${row.title}`, row.signature?.reviewer, row.signature?.signed_at,
+      fmt(row.fit?.rms_m), row.edge_refs.join(' / ')])));
+  group(root, '未放行图幅 · 卡点', table([['图幅'], ['卡在哪一步'], ['原因码'], ['判定'], ['关联拼缝'], ['说明']],
+    register.withheld.map(row => [`${row.code} ${row.title}`, row.stage_label, row.reason, row.reason_label,
+      row.edge_refs.join(' / '), row.detail])));
+  if (register.draft) {
+    root.append(el('p', '预排内容会随签审变化；点击「形成发放册」后成册留存。', 'issue-footer'));
+    return;
+  }
+  root.append(el('p', `第 ${register.revision} 版 · 领取单位 ${register.recipient} · 形成于 ${register.issued_at}`,
+    'issue-footer'));
+  const link = el('a', '下载本版发放册（JSON）', 'button outline issue-download');
+  link.href = `/api/review/runs/${register.run_id}/issuance/export?revision=${register.revision}`;
+  link.setAttribute('download', '');
+  root.append(link);
+  if (history.length > 1) {
+    group(root, '版本留档', table([['版本'], ['可调阅 / 未放行'], ['领取单位'], ['形成时间'], ['发放册号']],
+      [...history].reverse().map(row => {
+        const cell = el('span');
+        const anchor = el('a', `第 ${row.revision} 版`, 'issue-version');
+        anchor.href = `/api/review/runs/${register.run_id}/issuance/export?revision=${row.revision}`;
+        anchor.setAttribute('download', '');
+        if (row.revision === register.revision) anchor.setAttribute('aria-current', 'true');
+        cell.append(anchor);
+        return [cell, `${row.summary.released} / ${row.summary.withheld}`, row.recipient, row.issued_at,
+          row.issuance_id.slice(0, 12)];
+      })));
+  }
+}
+
+export function renderLedger(root, section, {snapshot, preview, selected, edgeId, limit, issuance: register,
+  issuanceHistory = []}) {
   root.replaceChildren();
-  const value = preview || (section === 'review' ? snapshot : snapshot?.[section]);
+  const value = preview || (section === 'review' ? snapshot : section === 'issuance' ? register : snapshot?.[section]);
   if (!value) {
     root.append(el('p', '运行校验后查看。'));
     return;
@@ -162,5 +216,6 @@ export function renderLedger(root, section, {snapshot, preview, selected, edgeId
   else if (section === 'affine') affine(root, preview ? value.sheets : value, snapshot?.pairing.pairs || []);
   else if (section === 'refit') refit(root, value, selected, limit);
   else if (section === 'seams') seams(root, value, edgeId);
+  else if (section === 'issuance') issuance(root, value, issuanceHistory);
   else renderers[section](root, value);
 }

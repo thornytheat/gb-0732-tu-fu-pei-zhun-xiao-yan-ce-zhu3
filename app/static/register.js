@@ -4,9 +4,10 @@ import {drawAtlas, drawEdge} from './plots.js';
 const byId = id => document.getElementById(id);
 const form = byId('run-form');
 const sign = byId('signature-form');
+const issueForm = byId('issuance-form');
 const links = [...document.querySelectorAll('[data-section]')];
 const state = {snapshot: null, catalog: null, preview: null, section: null, selected: null, edgeId: null,
-  busy: false, signing: false, previewToken: 0, reused: false};
+  issuance: null, issuanceHistory: [], busy: false, signing: false, issuing: false, previewToken: 0, reused: false};
 const formatTime = new Intl.DateTimeFormat('zh-CN', {timeZone: 'Asia/Shanghai', dateStyle: 'medium', timeStyle: 'medium'});
 const sides = {N: '北', E: '东', S: '南', W: '西'};
 
@@ -104,6 +105,20 @@ function renderSign() {
   else if (eligible.some(row => row.code === state.selected)) options.value = state.selected;
 }
 
+function renderIssueForm() {
+  const shown = state.section === 'issuance' && Boolean(state.snapshot);
+  issueForm.hidden = !shown;
+  if (!shown) return;
+  const issued = Boolean(state.issuance) && !state.issuance.draft;
+  const button = issueForm.querySelector('button');
+  button.disabled = false;
+  button.textContent = issued ? '按当前签审改版' : '形成发放册';
+  if (issued) {
+    byId('issuance-recipient').value = state.issuance.recipient;
+    byId('issuance-note').value = state.issuance.note || '';
+  }
+}
+
 function renderDetail() {
   if (!state.section) return;
   byId('section-detail').hidden = false;
@@ -116,13 +131,41 @@ function renderDetail() {
   const limit = state.snapshot?.manifest.parameters.control_limit_m || parameters().control_limit_m;
   renderLedger(byId('detail-content'), state.section, {...state, limit});
   renderSign();
+  renderIssueForm();
 }
 
+async function loadIssuance() {
+  if (!state.snapshot) return;
+  const runId = state.snapshot.manifest.run_id;
+  state.issuanceHistory = [];
+  try {
+    const register = await request(`/api/review/runs/${runId}/issuance`);
+    if (state.snapshot?.manifest.run_id !== runId) return;
+    state.issuance = register;
+    const history = await request(`/api/review/runs/${runId}/issuance/history`);
+    if (state.snapshot?.manifest.run_id !== runId) return;
+    state.issuanceHistory = history.revisions || [];
+  } catch (error) {
+    if (state.snapshot?.manifest.run_id !== runId) return;
+    state.issuance = null;
+    state.issuanceHistory = [];
+    try {
+      const draft = await request(`/api/review/runs/${runId}/issuance/preview`);
+      if (state.snapshot?.manifest.run_id !== runId) return;
+      state.issuance = draft;
+    } catch (failure) {
+      state.issuance = null;
+    }
+  }
+  renderDetail();
+}
 function showSnapshot(snapshot) {
   state.previewToken++;
   state.snapshot = snapshot;
   state.catalog = snapshot.catalog;
   state.preview = null;
+  state.issuance = null;
+  state.issuanceHistory = [];
   if (state.selected && !snapshot.refit.sheets[state.selected]) state.selected = null;
   if (!snapshot.seams.edges.some(edge => edge.code === state.edgeId)) state.edgeId = snapshot.seams.edges[0]?.code;
   const ledger = snapshot.ledger.controls;
@@ -145,6 +188,7 @@ function showSnapshot(snapshot) {
   renderSeamIndex();
   plot();
   renderDetail();
+  loadIssuance();
 }
 
 async function readIndex() {
@@ -166,10 +210,11 @@ async function selectSection(section, focus = false) {
   state.preview = null;
   const token = ++state.previewToken;
   feedback('signature-error', null);
+  feedback('issuance-error', null);
   renderDetail();
   if (focus) byId('detail-title').focus({preventScroll: true});
   if (focus) byId('section-detail').scrollIntoView({block: 'start'});
-  if (state.snapshot || section === 'review' || !form.reportValidity()) return;
+  if (state.snapshot || section === 'review' || section === 'issuance' || !form.reportValidity()) return;
   byId('detail-content').replaceChildren(el('p', '正在校验该章节。'));
   try {
     const value = await request(`/api/${section}?${new URLSearchParams(parameters())}`);
@@ -183,12 +228,13 @@ async function selectSection(section, focus = false) {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  if (state.busy || state.signing) return;
+  if (state.busy || state.signing || state.issuing) return;
   state.busy = true;
   const button = byId('run');
   button.disabled = true;
   feedback('run-error', null);
   feedback('signature-error', null);
+  feedback('issuance-error', null);
   byId('run-state').textContent = '正在校验档件…';
   try {
     const snapshot = await post('/api/review/runs', parameters());
@@ -206,7 +252,7 @@ form.addEventListener('submit', async event => {
 
 sign.addEventListener('submit', async event => {
   event.preventDefault();
-  if (state.busy || state.signing) return;
+  if (state.busy || state.signing || state.issuing) return;
   state.signing = true;
   const button = sign.querySelector('button');
   button.disabled = true;
@@ -222,6 +268,32 @@ sign.addEventListener('submit', async event => {
     feedback('signature-error', error.message);
   } finally {
     state.signing = false;
+    button.disabled = false;
+  }
+});
+
+issueForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (state.busy || state.signing || state.issuing || !state.snapshot) return;
+  state.issuing = true;
+  const button = issueForm.querySelector('button');
+  button.disabled = true;
+  const runId = state.snapshot.manifest.run_id;
+  feedback('issuance-error', null);
+  try {
+    const register = await post(`/api/review/runs/${runId}/issuance`, {
+      recipient: byId('issuance-recipient').value || null,
+      note: byId('issuance-note').value || null});
+    if (state.snapshot?.manifest.run_id !== runId) return;
+    state.issuance = register;
+    byId('run-state').textContent = register.reused
+      ? `发放册未改动 · 第 ${register.revision} 版`
+      : `发放册第 ${register.revision} 版 · ${register.summary.released} 幅可调阅 / ${register.summary.withheld} 幅未放行`;
+    renderDetail();
+  } catch (error) {
+    feedback('issuance-error', error.message);
+  } finally {
+    state.issuing = false;
     button.disabled = false;
   }
 });

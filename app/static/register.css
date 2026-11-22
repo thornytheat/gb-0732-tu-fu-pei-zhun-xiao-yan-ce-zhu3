@@ -72,7 +72,7 @@ sup a { font: 10px var(--mono); padding-inline-start: 3px; color: var(--accent);
   @page { size: A4 landscape; margin: 11mm; }
   body, .panel, .kpis, .panel-head { background: white; color: black; }
   .app { display: block; }
-  .rail, .topbar, .settings, .signature-form, .statusbar, .text-action { display: none !important; }
+  .rail, .topbar, .settings, .signature-form, .issuance-form, .statusbar, .text-action { display: none !important; }
   main { padding: 0; }
   .spec-spread { grid-template-columns: minmax(140px, .9fr) minmax(270px, 2fr) minmax(150px, 1fr); }
   .citations { grid-column: auto; }

@@ -7,4 +7,10 @@
     <button class="button primary" type="submit">签审入册</button>
     <p class="feedback" id="signature-error" role="alert" hidden></p>
   </form>
+  <form class="issuance-form" id="issuance-form" hidden>
+    <label>领取单位 <input id="issuance-recipient" name="recipient" maxlength="40" value="分所"></label>
+    <label>发放备注 <input id="issuance-note" name="note" maxlength="200" placeholder="可留空"></label>
+    <button class="button primary" type="submit">形成发放册</button>
+    <p class="feedback" id="issuance-error" role="alert" hidden></p>
+  </form>
 </section>

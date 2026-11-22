@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from app.errors import RegisterError
-from app.manifest import canonical_json
+from app.manifest import archive_key as archive_key_of, canonical_json
 
 SCHEMA = '''
 CREATE TABLE IF NOT EXISTS runs (
@@ -20,6 +20,16 @@ CREATE TABLE IF NOT EXISTS signatures (
     version INTEGER NOT NULL CHECK (version = 1),
     PRIMARY KEY (run_id, sheet)
 );
+CREATE TABLE IF NOT EXISTS issuances (
+    archive_key TEXT NOT NULL,
+    revision INTEGER NOT NULL CHECK (revision >= 1),
+    run_id TEXT NOT NULL REFERENCES runs(run_id),
+    issuance_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    body TEXT NOT NULL,
+    PRIMARY KEY (archive_key, revision)
+);
+CREATE INDEX IF NOT EXISTS issuances_run ON issuances(run_id);
 '''
 
 
@@ -89,3 +99,64 @@ class Store:
             connection.execute('INSERT INTO signatures VALUES (?, ?, ?, ?, 1)',
                                (run_id, sheet, reviewer, signed_at))
             return {'sheet': sheet, 'reviewer': reviewer, 'signed_at': signed_at, 'version': 1}
+
+    @staticmethod
+    def _history(connection, archive_key):
+        rows = connection.execute(
+            'SELECT revision, body FROM issuances WHERE archive_key = ? ORDER BY revision',
+            (archive_key,)).fetchall()
+        return [(row['revision'], json.loads(row['body'])) for row in rows]
+
+    @staticmethod
+    def _where(connection, run_id):
+        row = connection.execute('SELECT snapshot FROM runs WHERE run_id = ?', (run_id,)).fetchone()
+        if not row:
+            return None
+        return archive_key_of(json.loads(row['snapshot'])['manifest'])
+
+    def get_issuance(self, run_id, revision=None, required=True):
+        with self.connect() as connection:
+            archive_key = self._where(connection, run_id)
+            if archive_key is None:
+                self._read(connection, run_id)  # raises RUN_NOT_FOUND
+            history = self._history(connection, archive_key)
+            match = None
+            if revision is not None:
+                match = next((body for number, body in history if number == revision), None)
+            elif history:
+                match = history[-1][1]
+            if match is None and required:
+                raise RegisterError('ISSUANCE_NOT_FOUND', '该档件尚未形成发放册', 404)
+            return match
+
+    def issuance_history(self, run_id):
+        with self.connect() as connection:
+            archive_key = self._where(connection, run_id)
+            if archive_key is None:
+                self._read(connection, run_id)
+            return [body for _, body in self._history(connection, archive_key)]
+
+    def create_issuance(self, run_id, build, same_content=lambda previous, candidate: False):
+        # Read, build and append run in one IMMEDIATE transaction. Revising the
+        # register never overwrites a prior revision, and a failure rolls back
+        # leaving the previously issued register readable.
+        with self.connect('IMMEDIATE') as connection:
+            snapshot = self._read(connection, run_id)
+            archive_key = archive_key_of(snapshot['manifest'])
+            history = self._history(connection, archive_key)
+            latest = history[-1][1] if history else None
+            candidate = build(snapshot, (history[-1][0] + 1) if history else 1, latest)
+            if latest is not None and same_content(latest, candidate):
+                return latest, True
+            try:
+                connection.execute('INSERT INTO issuances VALUES (?, ?, ?, ?, ?, ?)',
+                                   (archive_key, candidate['revision'], run_id, candidate['issuance_id'],
+                                    candidate['issued_at'], canonical_json(candidate)))
+            except sqlite3.IntegrityError:
+                # Another connection appended this revision first; return that
+                # winner rather than surfacing a write error.
+                history = self._history(connection, archive_key)
+                if not history:
+                    raise
+                return history[-1][1], True
+            return candidate, False

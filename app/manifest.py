@@ -16,3 +16,9 @@ def run_manifest(survey, processing_ms):
     return {'run_id': run_id, **fingerprint, 'data_version': survey.catalog['version'],
             'created_at': datetime.now(timezone.utc).isoformat(timespec='milliseconds'),
             'processing_ms': processing_ms}
+
+
+def archive_key(manifest):
+    """Identity of the archive item itself, independent of rerun parameters."""
+    identity = {'inputs': manifest['inputs'], 'rule_version': manifest['rule_version']}
+    return sha256(canonical_json(identity).encode()).hexdigest()

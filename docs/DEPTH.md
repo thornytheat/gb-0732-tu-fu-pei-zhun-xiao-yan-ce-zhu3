@@ -14,6 +14,7 @@
 | M5 离群重估 | 查看稳健重估后的残差及排除理由 | `GET /api/refit` | `app/modules/refit/consensus.py` `app/modules/refit/service.py` | `tests/test_refit.py` |
 | M6 接缝验核 | 验证相邻边覆盖、次序与偏差 | `GET /api/seams` | `app/modules/seams/witnesses.py` `app/modules/seams/geometry.py` `app/modules/seams/service.py` | `tests/test_seams.py` |
 | M7 图幅签审 | 勾稽三表、签审、留存和导出 | `POST /api/review/runs` | `app/modules/review/decisions.py` `app/modules/review/reconcile.py` `app/modules/review/service.py` | `tests/test_review.py` |
+| M8 受控发放 | 形成分所取件册、标明卡点、冻结留存 | `POST /api/review/runs/{run_id}/issuance` | `app/modules/review/issuance.py` `app/store.py` | `tests/test_issuance.py` |
 
 ## 陷阱登记
 
@@ -39,6 +40,10 @@
 | TRAP-28 | `sample_data/field/ground.csv` 的河西 P08 偏离 | 初算剔除误伤多点 | 稳定多数重估恢复良点 | `app/modules/refit/consensus.py` | `tests/test_refit.py::test_refit_recovers_good_points_that_initial_fit_would_drop` |
 | TRAP-29 | `sample_data/field/witness.csv` 的 `HX-QS` | 小训练残差冒充拼缝通过 | 两侧独立投影后取最大平面差 | `app/modules/seams/geometry.py` | `tests/test_seams.py::test_independent_edge_fails_even_when_both_training_residuals_are_small` |
 | TRAP-30 | `sample_data/field/witness.csv` 测试副本用旧控制点名冒充见证 | 重复证据进入独立核验 | 用规范名和像素索引排除 | `app/modules/seams/witnesses.py` | `tests/test_seams.py::test_pseudo_witness_reusing_a_control_alias_is_excluded` |
+| TRAP-31 | 已签幅先发、其余待接缝复核即开馆 | 整批等齐误期或未签幅混入已放行 | 按幅分栏，未放行标明卡点阶段 | `app/modules/review/issuance.py` | `tests/test_issuance.py::test_issuance_separates_released_from_withheld_with_stage` |
+| TRAP-32 | 发放后再补签审 | 重算旧册，已发出的册无法恢复原样 | 同一册按版本追加，旧版本可回取 | `app/store.py` | `tests/test_issuance.py::test_signed_sheets_are_released_and_prior_register_is_recoverable` |
+| TRAP-33 | 同一档件改参数重跑后再次发放 | 追加第二册，分所拿到互相矛盾的册 | 以档件键归并为一册，内容不变则复用当前版 | `app/store.py` `app/manifest.py` | `tests/test_issuance.py::test_rerun_of_same_archive_never_creates_a_second_register` |
+| TRAP-34 | 建册中途写库失败 | 半册落库、旧版被覆盖 | 读建写同事务，失败回滚保留旧版 | `app/store.py` | `tests/test_issuance.py::test_failed_write_leaves_no_partial_register_and_retry_recovers` |
 
 ## 对账
 
